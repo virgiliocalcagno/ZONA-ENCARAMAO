@@ -214,7 +214,7 @@ const drawingInstructions = document.getElementById('drawing-instructions');
 let currentDrawingModal = null;
 let currentDrawHandler = null;
 
-const startDrawingMode = (modal, handler, instructions) => {
+const startDrawingMode = (modal, drawType, instructions) => {
     closeModal(modal);
     currentDrawingModal = modal;
     
@@ -227,10 +227,13 @@ const startDrawingMode = (modal, handler, instructions) => {
     // Forzar redibujado de Leaflet al cambiar de pestaña y luego iniciar dibujo
     setTimeout(() => {
         map.invalidateSize();
-        // Iniciar herramienta de dibujo
-        currentDrawHandler = handler;
-        currentDrawHandler.enable();
-    }, 250);
+        // Instanciar la herramienta EN ESTE MOMENTO EXACTO con el mapa redimensionado visualmente
+        if (drawType === 'polygon') currentDrawHandler = new L.Draw.Polygon(map, drawControl.options.draw.polygon);
+        if (drawType === 'marker') currentDrawHandler = new L.Draw.Marker(map, drawControl.options.draw.marker);
+        if (drawType === 'polyline') currentDrawHandler = new L.Draw.Polyline(map, drawControl.options.draw.polyline);
+        
+        if(currentDrawHandler) currentDrawHandler.enable();
+    }, 350);
     
     // Configurar y mostrar panel flotante
     drawingInstructions.innerText = instructions;
@@ -345,7 +348,7 @@ const formPolygon = document.getElementById('form-polygon');
 const polygonsListAdmin = document.getElementById('polygons-list-admin');
 
 document.getElementById('btn-draw-polygon').addEventListener('click', () => {
-    startDrawingMode(modalPolygons, new L.Draw.Polygon(map, drawControl.options.draw.polygon), "Dibuja el perímetro haciendo clic en el mapa. Conecta el último punto para terminar.");
+    startDrawingMode(modalPolygons, 'polygon', "Dibuja el perímetro haciendo clic en el mapa. Conecta el último punto para terminar.");
 });
 
 formPolygon.addEventListener('submit', (e) => {
@@ -409,7 +412,7 @@ const formStop = document.getElementById('form-stop');
 const stopsListAdmin = document.getElementById('stops-list-admin');
 
 document.getElementById('btn-draw-stop').addEventListener('click', () => {
-    startDrawingMode(modalStops, new L.Draw.Marker(map, drawControl.options.draw.marker), "Haz clic en el mapa para marcar el punto de recogida oficial.");
+    startDrawingMode(modalStops, 'marker', "Haz clic en el mapa para marcar el punto de recogida oficial.");
 });
 
 formStop.addEventListener('submit', (e) => {
@@ -477,7 +480,7 @@ const formRoute = document.getElementById('form-route');
 const routesListAdmin = document.getElementById('routes-list-admin');
 
 document.getElementById('btn-draw-route').addEventListener('click', () => {
-    startDrawingMode(modalRoutes, new L.Draw.Polyline(map, drawControl.options.draw.polyline), "Traza la ruta calle por calle. Haz doble clic en el último punto para terminar.");
+    startDrawingMode(modalRoutes, 'polyline', "Traza la ruta calle por calle. Haz doble clic en el último punto para terminar.");
 });
 
 formRoute.addEventListener('submit', (e) => {
