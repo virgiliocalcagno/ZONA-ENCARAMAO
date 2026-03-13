@@ -5,7 +5,7 @@ import random
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
-from backend.core.requests import Solicitud
+from backend.core.ride_requests import Solicitud
 from backend.database.firebase_service import FirebaseService
 
 def main():

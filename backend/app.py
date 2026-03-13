@@ -1,5 +1,5 @@
 from core.transport import Transporte
-from core.requests import Solicitud
+from core.ride_requests import Solicitud
 from core.admin import PlazaColonialAdmin
 from simulation.mock_generator import MockGenerator, esta_en_perimetro
 import time
