@@ -75,20 +75,7 @@ L.drawLocal.draw.handlers.polygon.tooltip.start = 'Haz clic para empezar a dibuj
 L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Sigue haciendo clic para añadir puntos.';
 L.drawLocal.draw.handlers.polygon.tooltip.end = 'Haz clic en el primer punto para cerrar el área.';
 
-// Guardar geometrías en Firebase al dibujar
-map.on(L.Draw.Event.CREATED, (e) => {
-    const layer = e.layer;
-    const type = e.layerType;
-    drawnItems.addLayer(layer);
-    
-    // Guardar en Firebase nodo 'admin_config'
-    const geoData = layer.toGeoJSON();
-    push(ref(database, 'admin_config/shapes'), {
-        type: type,
-        geometry: geoData.geometry,
-        timestamp: Date.now()
-    });
-});
+// (Listener obsoleto de autoguardado de shapes removido)
 
 // --- Marcadores de Flota ---
 const shuttleIcon = L.divIcon({
@@ -136,21 +123,10 @@ window.deleteRequest = (id) => {
     set(ref(database, `solicitudes/${id}`), null);
 };
 
-// Cargar dibujos guardados previamente
-onValue(ref(database, 'admin_config/shapes'), (snapshot) => {
-    drawnItems.clearLayers();
-    const data = snapshot.val();
-    if (data) {
-        Object.values(data).forEach(item => {
-            L.geoJSON(item.geometry, {
-                style: { color: item.type === 'polygon' ? '#136dec' : '#f8c214', weight: 3 },
-                onEachFeature: (feature, layer) => {
-                    drawnItems.addLayer(layer);
-                }
-            }).addTo(map);
-        });
-    }
-});
+// Capas permanentes para visualizar configuraciones guardadas
+const polygonsLayer = new L.FeatureGroup().addTo(map);
+const stopsLayer = new L.FeatureGroup().addTo(map);
+const routesLayer = new L.FeatureGroup().addTo(map);
 
 // --- Lógica de Navegación de Vistas y Modales ---
 const navItems = document.querySelectorAll('.nav-item[data-view]');
@@ -392,6 +368,7 @@ formPolygon.addEventListener('submit', (e) => {
         formPolygon.reset();
         closeModal(modalPolygons);
         document.getElementById('btn-save-polygon').disabled = true; // Reinicia el botón
+        drawnItems.clearLayers(); // Limpiar el trazo temporal
         lastDrawnLayer = null;
         alert("Geocerca guardada con éxito");
     });
@@ -399,6 +376,7 @@ formPolygon.addEventListener('submit', (e) => {
 
 onValue(ref(database, 'admin_config/polygons'), (snapshot) => {
     polygonsListAdmin.innerHTML = '';
+    polygonsLayer.clearLayers();
     const data = snapshot.val();
     if (data) {
         Object.values(data).forEach(poly => {
@@ -412,11 +390,10 @@ onValue(ref(database, 'admin_config/polygons'), (snapshot) => {
         });
         
         // También actualizar el mapa con las geocercas guardadas
-        drawnItems.clearLayers();
         Object.values(data).forEach(poly => {
             L.geoJSON(poly.geometry, {
                 style: { color: '#f8c214', weight: 4, opacity: 0.8, fillColor: '#f8c214', fillOpacity: 0.2 }
-            }).bindPopup(`<b>${poly.name}</b>`).addTo(drawnItems);
+            }).bindPopup(`<b>Zona: ${poly.name}</b>`).addTo(polygonsLayer);
         });
     }
 });
@@ -456,6 +433,7 @@ formStop.addEventListener('submit', (e) => {
         formStop.reset();
         closeModal(modalStops);
         document.getElementById('btn-save-stop').disabled = true; // Reinicia el botón
+        drawnItems.clearLayers(); // Limpiar el trazo temporal
         lastDrawnLayer = null;
         alert("Parada guardada con éxito");
     });
@@ -463,6 +441,7 @@ formStop.addEventListener('submit', (e) => {
 
 onValue(ref(database, 'admin_config/stops'), (snapshot) => {
     stopsListAdmin.innerHTML = '';
+    stopsLayer.clearLayers();
     const data = snapshot.val();
     if (data) {
         Object.values(data).forEach(stop => {
@@ -480,9 +459,9 @@ onValue(ref(database, 'admin_config/stops'), (snapshot) => {
             L.marker([stop.lat, stop.lng], {
                 icon: L.divIcon({
                     className: 'stop-marker-admin',
-                    html: `<div style="background: #white; border: 2px solid #136dec; width: 10px; height: 10px; border-radius: 50%;"></div>`
+                    html: `<div style="background: white; border: 2px solid #136dec; width: 10px; height: 10px; border-radius: 50%;"></div>`
                 })
-            }).bindPopup(`<b>Parada: ${stop.name}</b>`).addTo(drawnItems);
+            }).bindPopup(`<b>Parada: ${stop.name}</b>`).addTo(stopsLayer);
         });
     }
 });
@@ -521,6 +500,7 @@ formRoute.addEventListener('submit', (e) => {
         formRoute.reset();
         closeModal(modalRoutes);
         document.getElementById('btn-save-route').disabled = true; // Reinicia el botón
+        drawnItems.clearLayers(); // Limpiar el trazo temporal
         lastDrawnLayer = null;
         alert("Ruta guardada con éxito");
     });
@@ -528,6 +508,7 @@ formRoute.addEventListener('submit', (e) => {
 
 onValue(ref(database, 'admin_config/routes'), (snapshot) => {
     routesListAdmin.innerHTML = '';
+    routesLayer.clearLayers();
     const data = snapshot.val();
     if (data) {
         Object.values(data).forEach(route => {
@@ -543,8 +524,8 @@ onValue(ref(database, 'admin_config/routes'), (snapshot) => {
         // Mostrar líneas de rutas en el mapa
         Object.values(data).forEach(route => {
             L.geoJSON(route.geometry, {
-                style: { color: '#136dec', weight: 5, opacity: 0.6 }
-            }).bindPopup(`<b>Ruta: ${route.name}</b>`).addTo(drawnItems);
+                style: { color: '#136dec', weight: 5, opacity: 0.8 }
+            }).bindPopup(`<b>Ruta: ${route.name}</b>`).addTo(routesLayer);
         });
     }
 });
