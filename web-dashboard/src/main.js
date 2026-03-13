@@ -424,6 +424,10 @@ formCommercial.addEventListener('submit', (e) => {
         desc: document.getElementById('comm-desc').value,
         validationCode: document.getElementById('comm-code').value,
         validUntil: document.getElementById('comm-date').value,
+        social: {
+            instagram: document.getElementById('comm-ig').value,
+            whatsapp: document.getElementById('comm-wa').value
+        },
         timestamp: Date.now()
     };
 
@@ -781,6 +785,10 @@ get(ref(database, 'commercial_offers')).then((snapshot) => {
             desc: "Disfruta de un café artesanal dominicano totalmente gratis al presentar tu ticket de ZONA ENCARAMAO en desayunos seleccionados.",
             validationCode: "COLONIAL-CAFE",
             validUntil: "31 DIC 2026",
+            social: {
+                instagram: "https://instagram.com/zona_colonial",
+                whatsapp: "https://wa.me/18091234567"
+            },
             timestamp: Date.now()
         });
         console.log("☕ Oferta demo sembrada con éxito");

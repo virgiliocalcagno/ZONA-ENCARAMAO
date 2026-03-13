@@ -125,12 +125,18 @@ function startGeofencing() {
         }, (error) => {
             console.error("Error obteniendo ubicación:", error);
             const warning = document.getElementById('geofencing-warning');
-            warning.innerHTML = `<span class="material-symbols-outlined text-[12px] align-middle">gps_off</span> Activa tu GPS para usar el servicio`;
-            warning.className = "text-center text-[11px] text-red-500 font-bold mt-2";
+            
+            if (error.code === 3) {
+                warning.innerHTML = `<span class="material-symbols-outlined text-[12px] align-middle">search</span> Buscando señal GPS...`;
+                warning.className = "text-center text-[11px] text-blue-500 font-bold mt-2";
+            } else {
+                warning.innerHTML = `<span class="material-symbols-outlined text-[12px] align-middle">gps_off</span> Activa tu GPS para usar el servicio`;
+                warning.className = "text-center text-[11px] text-red-500 font-bold mt-2";
+            }
         }, {
             enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 5000
+            maximumAge: 30000,
+            timeout: 20000
         });
     } else {
         console.error("Geolocalización no soportada");
