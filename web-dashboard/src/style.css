@@ -148,7 +148,8 @@ header {
 .view-container {
   display: none;
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .view-container.active {
@@ -159,6 +160,7 @@ header {
 #map {
   flex: 1;
   z-index: 1;
+  min-height: 100%;
 }
 
 .monitoring-sidebar {
@@ -222,7 +224,7 @@ header {
 .config-grid {
   padding: 3rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   align-items: start;
 }

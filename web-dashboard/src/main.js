@@ -66,9 +66,10 @@ const drawControl = new L.Control.Draw({
         circlemarker: false
     }
 });
-map.addControl(drawControl);
+// El control de dibujo se añadirá dinámicamente al abrir los modales correspondientes
 
 // Traducción básica de mensajes
+
 L.drawLocal.draw.toolbar.buttons.polygon = 'Dibujar Perímetro (Multi-punto)';
 L.drawLocal.draw.handlers.polygon.tooltip.start = 'Haz clic para empezar a dibujar el área.';
 L.drawLocal.draw.handlers.polygon.tooltip.cont = 'Sigue haciendo clic para añadir puntos.';
@@ -194,8 +195,17 @@ const btnConfigRoutes = document.getElementById('config-routes').querySelector('
 
 const closeButtons = document.querySelectorAll('.close-modal');
 
-const openModal = (modal) => modal.classList.add('active');
-const closeModal = (modal) => modal.classList.remove('active');
+const openModal = (modal) => {
+    modal.classList.add('active');
+    if (modal === modalPolygons || modal === modalStops || modal === modalRoutes) {
+        map.addControl(drawControl);
+    }
+};
+
+const closeModal = (modal) => {
+    modal.classList.remove('active');
+    map.removeControl(drawControl);
+};
 
 btnConfigUnits.addEventListener('click', () => openModal(modalUnits));
 btnConfigPolygons.addEventListener('click', () => openModal(modalPolygons));
