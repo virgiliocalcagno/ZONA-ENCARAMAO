@@ -208,6 +208,54 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="modal-stops">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Paradas Oficiales</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Marca los puntos de recogida y descenso en el mapa.</p>
+          <button id="btn-draw-stop" class="btn-draw-action"><span class="material-symbols-outlined">location_on</span> Marcar Nueva Parada</button>
+          <form id="form-stop">
+            <div class="input-group">
+              <label>Nombre de la Parada</label>
+              <input type="text" id="stop-name" placeholder="Ej: Parque Colón" required>
+            </div>
+            <button type="submit" class="btn-primary-modal" id="btn-save-stop" disabled>Guardar Parada (Requiere Marcador)</button>
+          </form>
+          <div class="stops-list-container">
+            <h3>Paradas Guardadas</h3>
+            <div id="stops-list-admin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-routes">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Rutas de Recorrido</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Traza las calles exactas por donde transitará la unidad.</p>
+          <button id="btn-draw-route" class="btn-draw-action"><span class="material-symbols-outlined">route</span> Dibujar Ruta de Tránsito</button>
+          <form id="form-route">
+            <div class="input-group">
+              <label>Nombre de la Ruta</label>
+              <input type="text" id="route-name" placeholder="Ej: Ruta Principal 1" required>
+            </div>
+            <button type="submit" class="btn-primary-modal" id="btn-save-route" disabled>Guardar Ruta (Requiere Dibujo)</button>
+          </form>
+          <div class="routes-list-container">
+            <h3>Rutas Definidas</h3>
+            <div id="routes-list-admin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
