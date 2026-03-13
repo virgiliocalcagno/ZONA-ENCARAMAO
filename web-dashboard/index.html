@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Admin | ZONA ENCARAMAO</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+     <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Leaflet.draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="side-nav">
+        <div class="nav-logo">
+          <span class="material-symbols-outlined">shield</span>
+        </div>
+        <div class="nav-links">
+          <button class="nav-item active" data-view="monitoring" title="Monitoreo">
+            <span class="material-symbols-outlined">splitscreen</span>
+          </button>
+          <button class="nav-item" data-view="config" title="Configuración">
+            <span class="material-symbols-outlined">settings</span>
+          </button>
+        </div>
+        <div class="nav-footer">
+          <button class="nav-item" title="Salir">
+            <span class="material-symbols-outlined">logout</span>
+          </button>
+        </div>
+      </nav>
+
+      <div class="content">
+        <header>
+          <div class="header-title">
+            <h1 id="view-title">Centro de Monitoreo</h1>
+            <div class="status-badge">
+              <div class="status-dot"></div>
+              <span>Flota Activa</span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <div class="search-box">
+              <span class="material-symbols-outlined">search</span>
+              <input type="text" placeholder="Buscar unidad o zona...">
+            </div>
+            <div class="user-profile">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin">
+              <span>Administrador</span>
+            </div>
+          </div>
+        </header>
+
+        <main class="view-container active" id="monitoring-view">
+          <div id="map"></div>
+          
+          <aside class="monitoring-sidebar">
+            <div class="card stat-card">
+              <h3>Unidades en Ruta</h3>
+              <div class="card-value">12</div>
+              <p class="trend up">+2 hoy</p>
+            </div>
+
+            <div class="card stat-card">
+              <h3>Tiempo de Espera</h3>
+              <div class="card-value">08:24</div>
+              <p class="trend">Promedio Global</p>
+            </div>
+
+            <div class="card list-card">
+              <div class="card-header">
+                <h3>Solicitudes Recientes</h3>
+                <span class="badge">Nuevo</span>
+              </div>
+              <div id="requests-list">
+                <!-- Solicitudes se cargan aquí -->
+              </div>
+            </div>
+          </aside>
+        </main>
+
+        <main class="view-container" id="config-view">
+          <div class="config-grid">
+            <div class="config-card" id="config-polygons">
+              <div class="icon-box"><span class="material-symbols-outlined">polyline</span></div>
+              <h3>Geocercas y Zonas</h3>
+              <p>Define perímetros y zonas de operación segura.</p>
+              <button class="btn-config">Gestionar</button>
+            </div>
+            <div class="config-card" id="config-units">
+              <div class="icon-box"><span class="material-symbols-outlined">local_shipping</span></div>
+              <h3>Unidades de Transporte</h3>
+              <p>Alta y baja de shuttles, conductores y rutas.</p>
+              <button class="btn-config">Configurar</button>
+            </div>
+            <div class="config-card" id="config-routes">
+              <div class="icon-box"><span class="material-symbols-outlined">route</span></div>
+              <h3>Rutas de Recorrido</h3>
+              <p>Trazado de rutas y caminos obligatorios.</p>
+              <button class="btn-config">Definir Rutas</button>
+            </div>
+            <div class="config-card" id="config-stops">
+              <div class="icon-box"><span class="material-symbols-outlined">location_on</span></div>
+              <h3>Paradas Oficiales</h3>
+              <p>Puntos de recogida y descenso de pasajeros.</p>
+              <button class="btn-config">Gestionar Paradas</button>
+            </div>
+            <div class="config-card" id="config-alerts">
+              <div class="icon-box"><span class="material-symbols-outlined">notifications_active</span></div>
+              <h3>Alertas y Notificaciones</h3>
+              <p>Configura umbrales de velocidad y desvíos.</p>
+              <button class="btn-config">Personalizar</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modales de Configuración -->
+    <div class="modal-overlay" id="modal-units">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Gestionar Unidades</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-unit">
+            <div class="input-group">
+              <label>ID de la Unidad</label>
+              <input type="text" id="unit-id" placeholder="Ej: #405" required>
+            </div>
+            <div class="input-group">
+              <label>Nombre del Conductor</label>
+              <input type="text" id="unit-driver" placeholder="Nombre completo" required>
+            </div>
+            <button type="submit" class="btn-primary-modal">Guardar Unidad</button>
+          </form>
+          <div class="units-list-container">
+            <h3>Unidades Registradas</h3>
+            <div id="units-list-admin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-polygons">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Geocercas y Zonas</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Usa las herramientas de dibujo en el mapa para trazar el perímetro y luego asígnale un nombre aquí.</p>
+          <form id="form-polygon">
+            <div class="input-group">
+              <label>Nombre de la Zona</label>
+              <input type="text" id="poly-name" placeholder="Ej: Zona Colonial Principal" required>
+            </div>
+            <button type="submit" class="btn-primary-modal">Vincular al último dibujo</button>
+          </form>
+          <div class="polygons-list-container">
+            <h3>Zonas Guardadas</h3>
+            <div id="polygons-list-admin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

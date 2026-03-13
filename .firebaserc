@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "default": "zona-encaramao"
+  },
+  "targets": {
+    "zona-encaramao": {
+      "hosting": {
+        "admin": [
+          "zona-encaramao-admin"
+        ],
+        "client": [
+          "zona-encaramao-client"
+        ],
+        "driver": [
+          "zona-encaramao-driver"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

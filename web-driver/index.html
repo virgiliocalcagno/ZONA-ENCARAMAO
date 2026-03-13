@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="flex items-center justify-between px-8 py-4 border-b border-slate-800 bg-background-dark/50 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="text-primary"><span class="material-symbols-outlined text-4xl">directions_bus</span></div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight text-slate-100 uppercase">ZONA ENCARAMAO</h1>
+                <p class="text-xs font-medium text-slate-400 uppercase">UNIDAD #402 - EN SERVICIO</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-2xl font-bold text-slate-100" id="time">14:45</p>
+                <div class="flex items-center gap-2 justify-end">
+                    <div class="size-2 rounded-full bg-green-500"></div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">GPS Activo</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col landscape:flex-row gap-6 p-6 overflow-hidden">
+        <!-- Columna Izquierda: Alertas -->
+        <div class="flex-[1.5] flex flex-col gap-6">
+            <div id="alert-card" class="flex-1 flex flex-col justify-center items-center bg-primary/10 border-4 border-primary rounded-xl p-8 text-center relative overflow-hidden transition-all duration-500 opacity-30">
+                <span class="material-symbols-outlined text-primary text-8xl mb-4">hail</span>
+                <h2 class="text-primary text-3xl font-black uppercase tracking-widest mb-2">Sin solicitudes</h2>
+                <p class="text-slate-400 text-xl">Escaneando paradas próximas...</p>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Pasajeros -->
+        <div class="flex-1 flex flex-col gap-6">
+            <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-between shadow-xl">
+                <h2 class="text-slate-400 font-bold uppercase text-center text-sm tracking-[0.2em]">Pasajeros a Bordo</h2>
+                <div class="flex flex-col items-center">
+                    <span id="pax-count" class="text-[6rem] landscape:text-[8rem] font-black leading-none text-white tabular-nums">12</span>
+                    <p class="text-slate-500 font-bold text-lg uppercase tracking-widest">Capacidad: 35</p>
+                </div>
+                <div class="w-full flex gap-6">
+                    <button onclick="updatePax(-1)" class="flex-1 aspect-square max-h-[120px] flex flex-col items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-2xl border-b-4 border-slate-950 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-5xl">remove</span>
+                    </button>
+                    <button onclick="updatePax(1)" class="flex-1 aspect-square max-h-[120px] flex flex-col items-center justify-center bg-primary hover:bg-primary/90 text-white rounded-2xl border-b-4 border-blue-900 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-5xl">add</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-950 px-8 py-3 border-t border-slate-800 flex justify-between items-center">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-slate-400">battery_charging_full</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">98%</span>
+            </div>
+        </div>
+        <button onclick="simulateAlert()" class="bg-slate-800 text-slate-300 px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-widest hover:bg-slate-700">Simular Alerta</button>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

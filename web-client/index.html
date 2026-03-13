@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Pasajero | ZONA ENCARAMAO</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; }
+        .screen { display: none; }
+        .screen.active { display: flex; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+    
+    <!-- PANTALLA 1: BIENVENIDA -->
+    <div id="screen-welcome" class="screen active relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+        <div class="flex items-center p-4 pb-2 justify-between">
+            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">ZONA ENCARAMAO</h2>
+        </div>
+        <div class="flex flex-col flex-1">
+            <div class="px-4 py-3">
+                <div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-xl min-h-[400px] shadow-sm" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHRxDcHBJMe050d2-lHhHyW-uGYsgPRQanmAJhPnNAkwap9Twhl56bEnZldQ_r6GUf8c0JTfxJEB3gve5pywuvfvwO4ittdeGotuL40eL1fKBlHs-7Se7TN097sjrjPsfdOEPiG33Ca8xT2S6Ma1alzX6NOUNi4SFw1OP1KM4gEw-gOxY5lncS4dKa8pF62ujQHUxJBNCWbF1w1G3Ox9Hw3EdeSq3up-hHyHJgoWONXx1yvnfYZb-KHpVSp53RCnQK26ZsQ2kUsmCp");'></div>
+            </div>
+            <div class="flex flex-col items-center px-6 py-8">
+                <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-[32px] font-bold leading-tight text-center pb-4 pt-2">Movilidad Fácil en la Zona Colonial</h1>
+                <p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-relaxed text-center max-w-[320px]">Estacione su vehículo en la Plaza y tome nuestro transporte gratuito a su destino.</p>
+            </div>
+            <div class="flex flex-col gap-4 px-6 mb-8">
+                <div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><span class="material-symbols-outlined">local_parking</span></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Parqueo Seguro</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Parqueo validado en Plaza Central</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><span class="material-symbols-outlined">airport_shuttle</span></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900 dark:text-slate-100">Transporte Gratuito</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Llegadas cada 10 minutos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-auto p-6 pb-10">
+                <button onclick="changeScreen('screen-map')" class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">Comenzar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: USUARIO / MAPA / SOLICITUD -->
+    <div id="screen-map" class="screen relative h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark">
+        <header class="z-20 flex items-center bg-white/90 dark:bg-background-dark/90 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-800 justify-between">
+            <div class="flex items-center gap-3">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"><span class="material-symbols-outlined text-primary">fort</span></div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight tracking-tight">Plaza Colonial</h1>
+                    <div class="flex items-center gap-1.5">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Servicio: Activo</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="changeScreen('screen-status')" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><span class="material-symbols-outlined">notifications</span></button>
+        </header>
+        <main class="relative flex-1 bg-[#e5e7eb]">
+            <div class="absolute inset-0 z-0 bg-cover bg-center opacity-80" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtRxI5lGrpxQCIRyvWgwMHx_bwKSLm2rzcq5Jnd4-i84dthCbSIa2WFfI2V1CX6DKwFG1PlAEAFZ1h0-kWbnN4jBRsqfCg8f2IqBNu3oMrT2F7U8qJpDYQog8ep17aJdncV-y4BEIhER1lOut8LffF5Lg35pZAkz5G-fZFwGTgSp5m7WoKEDJDeQnoP11qhs6kufKpzLRwH7tWxpLnbPOG4fXAH1RcgfOSQ041TiWxCQdchUn6h39Zl_x6NY0N7TFQ782SXAcsSeOA");'></div>
+            <!-- Simulador de Trencito -->
+            <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                <div class="flex items-center justify-center size-10 bg-white dark:bg-background-dark rounded-full shadow-lg border-2 border-primary">
+                    <span class="material-symbols-outlined text-primary text-xl">train</span>
+                </div>
+                <div class="mt-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full text-center whitespace-nowrap shadow-sm">Trencito en camino</div>
+            </div>
+        </main>
+        <div class="z-30 flex flex-col bg-white dark:bg-background-dark rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] border-t border-slate-100 dark:border-slate-800">
+            <div class="flex h-1.5 w-12 self-center rounded-full bg-slate-200 dark:bg-slate-700 my-3"></div>
+            <div class="px-6 pb-2">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><span class="material-symbols-outlined text-3xl">schedule</span></div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Llegada estimada</p>
+                            <h3 class="text-xl font-bold">Llega en <span class="text-primary" id="eta">4 min</span></h3>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="requestPickup()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/25 active:scale-[0.98] flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">front_hand</span> Solicitar Parada aquí
+                </button>
+                <div class="h-24"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: ESTADO DEL SHUTTLE -->
+    <div id="screen-status" class="screen relative h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
+        <div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+            <div onclick="changeScreen('screen-map')" class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 cursor-pointer"><span class="material-symbols-outlined">arrow_back</span></div>
+            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold flex-1 text-center">Estado del Shuttle</h2>
+        </div>
+        <div class="flex flex-col gap-6 p-4">
+            <div class="flex flex-col items-stretch rounded-xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden border border-slate-200 dark:border-slate-800">
+                <div class="w-full bg-center bg-cover aspect-[16/7] relative" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwexjsROpdDJt1FgYi7m3cXXKKO18tqqGUWYd8T6OougOJuBF71YypB-fk91m5iGsfqRYZHQYdHVqy0ya0aahkbLeu1-pvM5BpnhytFcwQAugibs1Z6LpoyHoNctjMmojyp5dquufegfUx2uTIb4VC60QJUMFAKaLUML5i9y5Ow6zDJD3nR6Ctrf8nlezTAgOKIIthJt9JpdqJ8wS0afs7Qb8IbEiCM_JNVg5TrTJpmXl0ZGiThDLsyKz3jv44FI1ZfaiGBn6Gi2qH");'>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                        <span class="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Seguimiento en vivo</span>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <p class="text-primary text-xs font-bold uppercase tracking-widest mb-1">Próximo Shuttle</p>
+                    <p class="text-slate-900 dark:text-white text-2xl font-bold">En 08:45</p>
+                    <p class="text-slate-500 text-sm mt-2 font-medium">Llegando a Calle Duarte</p>
+                </div>
+            </div>
+            
+            <section class="bg-primary/5 dark:bg-primary/10 rounded-xl p-5 border border-primary/10">
+                <div class="flex items-center gap-2 mb-3 text-primary">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                    <h3 class="font-bold">Consejos del Servicio</h3>
+                </div>
+                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                    <li class="flex gap-3"><span>•</span><span>Los shuttles operan cada 15 min de 8AM a 10PM.</span></li>
+                    <li class="flex gap-3"><span>•</span><span>Presiona 'Solicitar Parada' para que el conductor te vea.</span></li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
