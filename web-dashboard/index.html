@@ -25,6 +25,9 @@
           <button class="nav-item active" data-view="monitoring" title="Monitoreo">
             <span class="material-symbols-outlined">splitscreen</span>
           </button>
+          <button class="nav-item" data-view="commercial" title="Gestión Comercial">
+            <span class="material-symbols-outlined">storefront</span>
+          </button>
           <button class="nav-item" data-view="config" title="Configuración">
             <span class="material-symbols-outlined">settings</span>
           </button>
@@ -62,15 +65,21 @@
           
           <aside class="monitoring-sidebar">
             <div class="card stat-card">
-              <h3>Unidades en Ruta</h3>
-              <div class="card-value">12</div>
-              <p class="trend up">+2 hoy</p>
+              <h3>Tiempo de Espera Promedio</h3>
+              <div class="card-value" id="stat-wait">03:45 min</div>
+              <p class="trend down">-30s hoy</p>
             </div>
 
             <div class="card stat-card">
-              <h3>Tiempo de Espera</h3>
-              <div class="card-value">08:24</div>
-              <p class="trend">Promedio Global</p>
+              <h3>Horas Pico Actuales</h3>
+              <div class="card-value">18:00 - 20:00</div>
+              <p class="trend up">Alta Demanda</p>
+            </div>
+
+            <div class="card stat-card">
+              <h3>Zonas de Mayor Demanda</h3>
+              <div class="card-value" style="font-size: 1.2rem;">Plaza España<br>Parque Colón</div>
+              <p class="trend">En Tiempo Real</p>
             </div>
 
             <div class="card list-card">
@@ -117,6 +126,67 @@
               <p>Configura umbrales de velocidad y desvíos.</p>
               <button class="btn-config">Personalizar</button>
             </div>
+          </div>
+        </main>
+
+        <main class="view-container" id="commercial-view">
+          <div class="commercial-header" style="margin-bottom: 2rem;">
+            <h2>Gestión Comercial (Pasaporte Colonial)</h2>
+            <p style="color:var(--text-secondary); margin-top: 0.5rem;">Administra socios comerciales, ofertas flash y banners publicitarios para la App de Pasajeros.</p>
+          </div>
+          
+          <div class="config-grid">
+            <div class="config-card">
+              <div class="icon-box"><span class="material-symbols-outlined">storefront</span></div>
+              <h3>Comercios Afiliados</h3>
+              <p>Gestiona restaurantes, museos y tiendas que ofrecen descuentos.</p>
+              <button class="btn-config" id="btn-open-commercial">Gestionar Socios</button>
+            </div>
+            
+            <div class="config-card">
+              <div class="icon-box" style="background: var(--warning-light); color: var(--warning)"><span class="material-symbols-outlined">bolt</span></div>
+              <h3>Ofertas Flash</h3>
+              <p>Lanza promociones geolocalizadas que duran minutos u horas.</p>
+              <button class="btn-config">Crear Oferta</button>
+            </div>
+
+            <div class="config-card">
+              <div class="icon-box" style="background: var(--success-light); color: var(--success)"><span class="material-symbols-outlined">campaign</span></div>
+              <h3>Banners Patrocinados</h3>
+              <p>Sube imágenes y controla los anuncios de la pantalla de espera.</p>
+              <button class="btn-config">Gestionar Banners</button>
+            </div>
+          </div>
+
+          <div class="card list-card" style="margin-top: 2rem; max-width: 800px;">
+            <div class="card-header">
+              <h3>Ofertas Activas Recientes</h3>
+              <button class="btn-config" style="padding: 0.25rem 0.5rem">Subir Nueva</button>
+            </div>
+            <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 1rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                  <th style="padding: 0.5rem;">Comercio</th>
+                  <th style="padding: 0.5rem;">Oferta</th>
+                  <th style="padding: 0.5rem;">Válido Hasta</th>
+                  <th style="padding: 0.5rem;">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--bg-alt);">
+                  <td style="padding: 0.75rem 0.5rem; font-weight: bold;">Café de la Ciudad</td>
+                  <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Café gratis con comida</td>
+                  <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Hoy, 12:00 PM</td>
+                  <td style="padding: 0.75rem 0.5rem;"><span class="badge" style="background: var(--success-light); color: var(--success);">Activo</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--bg-alt);">
+                  <td style="padding: 0.75rem 0.5rem; font-weight: bold;">Museo Alcázar</td>
+                  <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Entradas 2x1</td>
+                  <td style="padding: 0.75rem 0.5rem; color: var(--text-secondary);">Mañana, 6:00 PM</td>
+                  <td style="padding: 0.75rem 0.5rem;"><span class="badge" style="background: var(--success-light); color: var(--success);">Activo</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </main>
       </div>
@@ -251,6 +321,53 @@
           <div class="routes-list-container">
             <h3>Rutas Definidas</h3>
             <div id="routes-list-admin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-commercial">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Gestión de Comercios (Pasaporte Colonial)</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Añade o elimina establecimientos que participan en el Pasaporte Colonial.</p>
+          <form id="form-commercial">
+            <div class="input-grid-2">
+              <div class="input-group">
+                <label>Nombre del Establecimiento</label>
+                <input type="text" id="comm-name" placeholder="Ej: Café de la Ciudad" required>
+              </div>
+              <div class="input-group">
+                <label>Icono (Material Icon)</label>
+                <input type="text" id="comm-icon" placeholder="Ej: local_cafe" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Descripción Corta (App)</label>
+              <input type="text" id="comm-short-desc" placeholder="Ej: Café gratis en tu desayuno" required>
+            </div>
+            <div class="input-group">
+              <label>Detalle de la Oferta</label>
+              <textarea id="comm-desc" placeholder="Explica detalladamente en qué consiste la promoción..." required></textarea>
+            </div>
+            <div class="input-grid-2">
+                <div class="input-group">
+                    <label>Código de Validación</label>
+                    <input type="text" id="comm-code" placeholder="Ej: CAFE-123" required>
+                </div>
+                <div class="input-group">
+                    <label>Válido Hasta</label>
+                    <input type="text" id="comm-date" placeholder="Ej: 31 DIC 24" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary-modal">Guardar Establecimiento</button>
+          </form>
+          <div class="list-container-admin" style="margin-top: 2rem;">
+            <h3>Comercios Activos</h3>
+            <div id="commercial-list-admin"></div>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script>
         tailwind.config = {
             darkMode: "class",
@@ -38,8 +39,25 @@
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display antialiased">
     
+    <!-- PANTALLA 0: TICKET VALIDATION -->
+    <div id="screen-ticket" class="screen relative h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+        <div class="flex items-center p-4 pb-2 justify-between">
+            <button onclick="changeScreen('screen-welcome')" class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 cursor-pointer"><span class="material-symbols-outlined">arrow_back</span></button>
+            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Validación</h2>
+        </div>
+        <div class="flex flex-col flex-1 px-6 py-8 items-center justify-center">
+             <div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary mb-6 shadow-xl shadow-primary/20"><span class="material-symbols-outlined text-4xl">qr_code_scanner</span></div>
+            <h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-2xl font-bold leading-tight text-center pb-4">Validar Ticket de Parqueo</h1>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-normal leading-relaxed text-center max-w-[300px] mb-8">Ingrese el código de su ticket de Plaza Colonial para acceder al servicio exclusivo gratuito.</p>
+            <div class="w-full max-w-[320px] mb-6">
+                <input type="text" id="ticket-input" placeholder="Ej: ZONA-1234" class="w-full text-center px-4 py-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold tracking-widest uppercase focus:outline-none focus:border-primary dark:focus:border-primary transition-colors">
+            </div>
+            <button onclick="validateTicket()" class="w-full max-w-[320px] flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-opacity active:scale-95">Validar y Entrar</button>
+        </div>
+    </div>
+
     <!-- PANTALLA 1: BIENVENIDA -->
-    <div id="screen-welcome" class="screen active relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+    <div id="screen-welcome" class="screen active relative h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
         <div class="flex items-center p-4 pb-2 justify-between">
             <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">ZONA ENCARAMAO</h2>
         </div>
@@ -68,7 +86,7 @@
                 </div>
             </div>
             <div class="mt-auto p-6 pb-10">
-                <button onclick="changeScreen('screen-map')" class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">Comenzar</button>
+                <button onclick="changeScreen('screen-ticket')" class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">Comenzar</button>
             </div>
         </div>
     </div>
@@ -91,15 +109,9 @@
             </div>
             <button onclick="changeScreen('screen-status')" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"><span class="material-symbols-outlined">notifications</span></button>
         </header>
-        <main class="relative flex-1 bg-[#e5e7eb]">
-            <div class="absolute inset-0 z-0 bg-cover bg-center opacity-80" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtRxI5lGrpxQCIRyvWgwMHx_bwKSLm2rzcq5Jnd4-i84dthCbSIa2WFfI2V1CX6DKwFG1PlAEAFZ1h0-kWbnN4jBRsqfCg8f2IqBNu3oMrT2F7U8qJpDYQog8ep17aJdncV-y4BEIhER1lOut8LffF5Lg35pZAkz5G-fZFwGTgSp5m7WoKEDJDeQnoP11qhs6kufKpzLRwH7tWxpLnbPOG4fXAH1RcgfOSQ041TiWxCQdchUn6h39Zl_x6NY0N7TFQ782SXAcsSeOA");'></div>
-            <!-- Simulador de Trencito -->
-            <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-                <div class="flex items-center justify-center size-10 bg-white dark:bg-background-dark rounded-full shadow-lg border-2 border-primary">
-                    <span class="material-symbols-outlined text-primary text-xl">train</span>
-                </div>
-                <div class="mt-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full text-center whitespace-nowrap shadow-sm">Trencito en camino</div>
-            </div>
+        <main class="relative flex-1 bg-slate-200">
+            <div id="user-map" class="absolute inset-0 z-0"></div>
+            <!-- El trencito ahora se manejará como marcador de Leaflet -->
         </main>
         <div class="z-30 flex flex-col bg-white dark:bg-background-dark rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] border-t border-slate-100 dark:border-slate-800">
             <div class="flex h-1.5 w-12 self-center rounded-full bg-slate-200 dark:bg-slate-700 my-3"></div>
@@ -113,47 +125,91 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="requestPickup()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/25 active:scale-[0.98] flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">front_hand</span> Solicitar Parada aquí
-                </button>
-                <div class="h-24"></div>
+                
+                <!-- PASAPORTE COLONIAL CAROUSEL -->
+                <div class="mb-4 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shadow-sm relative">
+                    <div class="absolute top-0 right-0 z-10 bg-gradient-to-l from-white dark:from-slate-900 w-8 h-full pointer-events-none"></div>
+                    <div class="absolute top-2 left-2 z-10 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-sm border border-slate-700">
+                        <span class="material-symbols-outlined text-[12px] text-yellow-400">star</span> Pasaporte Colonial
+                    </div>
+                    <div id="offers-carousel" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbars no-scrollbar w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        <!-- Los items se cargarán dinámicamente vía JS -->
+                    </div>
+                </div>
+
+                <!-- ESTADO DE SOLICITUD INTEGRADO (Visible solo cuando hay solicitud activa) -->
+                <div id="request-status-panel" class="hidden flex-col gap-3 my-2">
+                    <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-4 text-center">
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                             <div class="size-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                                 <span id="pax-status-icon" class="material-symbols-outlined text-white text-xl">hail</span>
+                             </div>
+                             <h3 id="pax-status-title" class="text-sm font-black text-slate-900 dark:text-white uppercase">Sincronizando...</h3>
+                        </div>
+                        <p id="pax-status-desc" class="text-slate-500 dark:text-slate-400 text-[11px] font-medium mb-3">Conectando con el conductor más cercano</p>
+                        
+                        <button onclick="window.cancelRequest()" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-red-500 font-bold py-2 rounded-xl text-[10px] transition-all uppercase tracking-widest">
+                            Cancelar Solicitud
+                        </button>
+                    </div>
+                </div>
+
+                <div id="request-action-group">
+                    <button id="btn-request-stop" onclick="requestPickup()" disabled class="w-full bg-slate-300 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 cursor-not-allowed transition-all">
+                        <span class="material-symbols-outlined">front_hand</span> Solicitar Parada aquí
+                    </button>
+                    <p id="geofencing-warning" class="text-center text-[11px] text-orange-500 font-bold mt-2 animate-pulse">
+                        <span class="material-symbols-outlined text-[12px] align-middle">location_off</span> Detectando ubicación...
+                    </p>
+                </div>
+                <div class="h-10"></div>
             </div>
         </div>
     </div>
 
-    <!-- PANTALLA 3: ESTADO DEL SHUTTLE -->
-    <div id="screen-status" class="screen relative h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
-        <div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
-            <div onclick="changeScreen('screen-map')" class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 cursor-pointer"><span class="material-symbols-outlined">arrow_back</span></div>
-            <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold flex-1 text-center">Estado del Shuttle</h2>
-        </div>
-        <div class="flex flex-col gap-6 p-4">
-            <div class="flex flex-col items-stretch rounded-xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden border border-slate-200 dark:border-slate-800">
-                <div class="w-full bg-center bg-cover aspect-[16/7] relative" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwexjsROpdDJt1FgYi7m3cXXKKO18tqqGUWYd8T6OougOJuBF71YypB-fk91m5iGsfqRYZHQYdHVqy0ya0aahkbLeu1-pvM5BpnhytFcwQAugibs1Z6LpoyHoNctjMmojyp5dquufegfUx2uTIb4VC60QJUMFAKaLUML5i9y5Ow6zDJD3nR6Ctrf8nlezTAgOKIIthJt9JpdqJ8wS0afs7Qb8IbEiCM_JNVg5TrTJpmXl0ZGiThDLsyKz3jv44FI1ZfaiGBn6Gi2qH");'>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                        <span class="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Seguimiento en vivo</span>
-                    </div>
+
+
+    <!-- MODAL DE DETALLE DE OFERTA -->
+    <div id="offer-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div class="relative p-6 text-center border-b border-slate-100 dark:border-slate-800">
+                <button onclick="window.closeOfferModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div id="modal-offer-icon-box" class="size-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <span id="modal-offer-icon" class="material-symbols-outlined text-3xl">local_cafe</span>
                 </div>
-                <div class="p-5">
-                    <p class="text-primary text-xs font-bold uppercase tracking-widest mb-1">Próximo Shuttle</p>
-                    <p class="text-slate-900 dark:text-white text-2xl font-bold">En 08:45</p>
-                    <p class="text-slate-500 text-sm mt-2 font-medium">Llegando a Calle Duarte</p>
+                <h2 id="modal-offer-title" class="text-xl font-black text-slate-900 dark:text-white uppercase leading-tight px-4">Cargando...</h2>
+                <div id="modal-offer-status" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold rounded-full uppercase tracking-tighter">
+                    <span class="size-1.5 bg-green-500 rounded-full animate-pulse"></span> Oferta Válida
                 </div>
             </div>
             
-            <section class="bg-primary/5 dark:bg-primary/10 rounded-xl p-5 border border-primary/10">
-                <div class="flex items-center gap-2 mb-3 text-primary">
-                    <span class="material-symbols-outlined">lightbulb</span>
-                    <h3 class="font-bold">Consejos del Servicio</h3>
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50">
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6">
+                    <img id="modal-qr-code" src="" alt="QR Validation" class="mx-auto size-40 object-contain mb-4">
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mb-1 text-center">CÓDIGO DE VALIDACIÓN</p>
+                    <p id="modal-offer-code" class="text-lg font-black text-primary tracking-widest uppercase text-center">----</p>
                 </div>
-                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-                    <li class="flex gap-3"><span>•</span><span>Los shuttles operan cada 15 min de 8AM a 10PM.</span></li>
-                    <li class="flex gap-3"><span>•</span><span>Presiona 'Solicitar Parada' para que el conductor te vea.</span></li>
-                </ul>
-            </section>
+                
+                <p id="modal-offer-desc" class="text-slate-600 dark:text-slate-400 text-sm font-medium mb-6 px-2 text-center">...</p>
+                
+                <div class="flex items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-700 pt-6 px-2">
+                    <div class="flex gap-4">
+                        <a id="modal-social-ig" href="#" target="_blank" class="text-slate-400 hover:text-pink-500 transition-colors">
+                            <svg class="size-6 fill-current" viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+                        </a>
+                        <a id="modal-social-wa" href="#" target="_blank" class="text-slate-400 hover:text-green-500 transition-colors">
+                            <svg class="size-6 fill-current" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.81 9.81 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.19-.3a8.232 8.232 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m-3.53 4.75c-.13 0-.34.05-.51.24-.17.2-.65.63-.65 1.53s.66 1.76.75 1.89c.09.13 1.29 1.97 3.14 2.77.44.19.78.31 1.05.39.44.14.84.12 1.15.07.35-.05 1.08-.44 1.23-.86.15-.42.15-.77.11-.86-.04-.09-.15-.14-.31-.23s-.97-.47-1.12-.53-.25-.09-.35.05c-.1.14-.38.47-.47.58-.09.12-.19.13-.35.05-.16-.08-.66-.24-1.26-.78-.46-.41-.78-.92-.87-1.07-.09-.15-.01-.23.07-.31.07-.07.15-.18.23-.27.08-.09.11-.15.16-.25.06-.1.03-.19-.01-.27s-.35-.86-.48-1.17c-.13-.3-.27-.26-.35-.26z"/></svg>
+                        </a>
+                    </div>
+                    <span id="modal-offer-date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">---</span>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

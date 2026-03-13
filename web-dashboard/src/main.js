@@ -2,9 +2,12 @@ import './style.css'
 import L from 'leaflet'
 import 'leaflet-draw'
 import { initializeApp } from 'firebase/app'
-import { getDatabase, ref, onValue, set, push } from 'firebase/database'
+import { getDatabase, ref, onValue, set, push, get } from 'firebase/database'
 
-// --- Firebase Config ---
+// --- Asegurar L global para plugins externos ---
+window.L = L;
+
+console.log("🛡️ ZONA ENCARAMAO: Cargando configuración...");
 const firebaseConfig = {
   projectId: "zona-encaramao",
   appId: "1:963735768136:web:7e2491b3c4f6a3703bdc7d",
@@ -32,6 +35,24 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(leafletMap);
 
 L.control.zoom({ position: 'topright' }).addTo(leafletMap);
+
+// Capas permanentes (Definidas antes de los listeners)
+const polygonsLayer = new L.FeatureGroup().addTo(leafletMap);
+const stopsLayer = new L.FeatureGroup().addTo(leafletMap);
+const routesLayer = new L.FeatureGroup().addTo(leafletMap);
+let heatmapLayer; // Se inicializará tras cargar el plugin
+
+// Variable para el control de visibilidad del heatmap
+let showHeatmap = true;
+
+// --- Carga dinámica del plugin Heatmap ---
+const scriptHeat = document.createElement('script');
+scriptHeat.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
+scriptHeat.onload = () => {
+    heatmapLayer = L.heatLayer([], { radius: 25, blur: 15, max: 1.0 }).addTo(leafletMap);
+    console.log("🔥 Heatmap Plugin cargado correctamente");
+};
+document.head.appendChild(scriptHeat);
 
 // --- Capas de Dibujo ---
 const drawnItems = new L.FeatureGroup();
@@ -97,37 +118,87 @@ onValue(ref(database, 'transporte/trencito_1'), (snapshot) => {
     }
 });
 
-// Escuchar solicitudes de recogida
+// Escuchar solicitudes de recogida (stop_requests)
 const requestsList = document.getElementById('requests-list');
-onValue(ref(database, 'solicitudes'), (snapshot) => {
+const statWait = document.getElementById('stat-wait');
+
+onValue(ref(database, 'stop_requests'), (snapshot) => {
     const data = snapshot.val();
     requestsList.innerHTML = '';
+    
+    // Preparar puntos para el heatmap
+    const heatPoints = [];
+
     if (data) {
-        Object.entries(data).forEach(([id, req]) => {
+        let pendingCount = 0;
+        let totalWaitTime = 0;
+        let totalRequestsFinished = 0;
+
+        const now = Date.now();
+
+        Object.entries(data).sort((a,b) => b[1].timestamp - a[1].timestamp).forEach(([id, req]) => {
+            // Heatmap: solo puntos pendientes o muy recientes (1 para máxima intensidad)
+            if (req.status === 'pending' && req.lat && req.lng) {
+                heatPoints.push([req.lat, req.lng, 1.0]);
+            } else if (req.status === 'picked_up' && req.lat && req.lng) {
+                heatPoints.push([req.lat, req.lng, 0.4]); // Intensidad baja para completados recientes
+            }
+
+            // Stats para el promedio
+            if (req.status === 'picked_up' && req.timestamp) {
+                const waitTime = now - req.timestamp;
+                totalWaitTime += waitTime;
+                totalRequestsFinished++;
+            }
+
+            const isPending = req.status === 'pending';
+            if (isPending) pendingCount++;
+
+            // Mostrar solo los últimos 15 en la lista visual
             const item = document.createElement('div');
-            item.className = 'request-item';
+            item.className = `request-item ${!isPending ? 'completed' : ''}`;
             item.innerHTML = `
                 <div class="request-info">
-                    <h4>Usuario ID: ${id.slice(-4)}</h4>
-                    <p>Solicitado a las: ${new Date(req.timestamp).toLocaleTimeString()}</p>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="status-badge-small ${req.status}">${req.status.toUpperCase()}</span>
+                        <h4>ID: ${id.slice(-4)}</h4>
+                    </div>
+                    <p>${new Date(req.timestamp).toLocaleTimeString()}</p>
                 </div>
-                <button class="btn-action" onclick="deleteRequest('${id}')">Atender</button>
+                ${isPending ? `<button class="btn-action" onclick="deleteRequest('${id}')">Descartar</button>` : ''}
             `;
-            requestsList.appendChild(item);
+            if (requestsList.children.length < 15) requestsList.appendChild(item);
         });
+
+        // Actualizar Heatmap (Solo si ya cargó el plugin)
+        if (heatmapLayer) {
+            heatmapLayer.setLatLngs(heatPoints);
+        }
+
+        if (requestsList.innerHTML === '') {
+            requestsList.innerHTML = '<p style="padding: 1rem; color: var(--text-dim);">No hay actividad reciente.</p>';
+        }
+
+        // Actualizar UI del promedio de espera
+        if (totalRequestsFinished > 0) {
+            const avgMs = totalWaitTime / totalRequestsFinished;
+            const avgMins = Math.floor(avgMs / 60000);
+            const avgSecs = Math.floor((avgMs % 60000) / 1000);
+            if (statWait) statWait.innerText = `${avgMins.toString().padStart(2, '0')}:${avgSecs.toString().padStart(2, '0')} min`;
+        } else {
+            if (statWait) statWait.innerText = `00:00 min`;
+        }
+
     } else {
         requestsList.innerHTML = '<p style="padding: 1rem; color: var(--text-dim);">No hay solicitudes pendientes.</p>';
+        if (statWait) statWait.innerText = `00:00 min`;
+        if (heatmapLayer) heatmapLayer.setLatLngs([]);
     }
 });
 
 window.deleteRequest = (id) => {
-    set(ref(database, `solicitudes/${id}`), null);
+    set(ref(database, `stop_requests/${id}`), null);
 };
-
-// Capas permanentes para visualizar configuraciones guardadas
-const polygonsLayer = new L.FeatureGroup().addTo(leafletMap);
-const stopsLayer = new L.FeatureGroup().addTo(leafletMap);
-const routesLayer = new L.FeatureGroup().addTo(leafletMap);
 
 // --- Lógica de Navegación de Vistas y Modales ---
 const navItems = document.querySelectorAll('.nav-item[data-view]');
@@ -151,11 +222,14 @@ navItems.forEach(item => {
         });
         
         // Actualizar Título del Header
-        viewTitle.innerText = targetView === 'monitoring' ? 'Centro de Monitoreo' : 'Configuración del Sistema';
+        let title = 'Configuración del Sistema';
+        if (targetView === 'monitoring') title = 'Centro de Monitoreo';
+        if (targetView === 'commercial') title = 'Zona Comercial';
+        viewTitle.innerText = title;
         
         // Forzar actualización de mapa si volvemos a Monitoreo
         if (targetView === 'monitoring') {
-            setTimeout(() => map.invalidateSize(), 150);
+            setTimeout(() => leafletMap.invalidateSize(), 150);
         }
     });
 });
@@ -214,10 +288,56 @@ const drawingModePanel = document.getElementById('drawing-mode-panel');
 const drawingInstructions = document.getElementById('drawing-instructions');
 let currentDrawingModal = null;
 let currentDrawHandler = null;
+let lastDrawnLayer = null;
+
+// Configuración visual experta para el dibujo
+const drawOptions = {
+    polygon: {
+        allowIntersection: false,
+        showArea: true,
+        metric: true,
+        repeatMode: true, // Permite dibujar varios en puntos si se desea (aunque lo limitaremos)
+        shapeOptions: {
+            color: '#f8c214',
+            weight: 4,
+            opacity: 0.9,
+            fillColor: '#f8c214',
+            fillOpacity: 0.3
+        },
+        icon: new L.DivIcon({
+            iconSize: new L.Point(12, 12),
+            className: 'leaflet-div-icon leaflet-editing-icon'
+        }),
+        touchIcon: new L.DivIcon({
+            iconSize: new L.Point(20, 20),
+            className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon'
+        })
+    },
+    marker: {
+        icon: L.divIcon({
+            className: 'stop-marker-admin',
+            html: `<div style="background: white; border: 3px solid #136dec; width: 14px; height: 14px; border-radius: 50%;"></div>`
+        })
+    },
+    polyline: {
+        shapeOptions: {
+            color: '#136dec',
+            weight: 5,
+            opacity: 0.9
+        }
+    }
+};
 
 const startDrawingMode = (modal, drawType, instructions) => {
+    console.log(`🎨 Iniciando modo dibujo: ${drawType}`);
     closeModal(modal);
     currentDrawingModal = modal;
+    
+    // Desactivar heatmap temporalmente para que no robe clics
+    if (heatmapLayer) {
+        leafletMap.removeLayer(heatmapLayer);
+        console.log("🔥 Heatmap desactivado para dibujo");
+    }
     
     // Cambiar vista a monitoreo para ver el mapa
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -225,27 +345,52 @@ const startDrawingMode = (modal, drawType, instructions) => {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.getElementById('monitoring-view').classList.add('active');
     
+    // Limpiar cualquier dibujo previo no guardado
+    drawnItems.clearLayers();
+    lastDrawnLayer = null;
+
     // Forzar redibujado de Leaflet al cambiar de pestaña y luego iniciar dibujo
     setTimeout(() => {
         leafletMap.invalidateSize();
-        // Instanciar la herramienta EN ESTE MOMENTO EXACTO con el mapa redimensionado visualmente
-        if (drawType === 'polygon') currentDrawHandler = new L.Draw.Polygon(leafletMap, drawControl.options.draw.polygon);
-        if (drawType === 'marker') currentDrawHandler = new L.Draw.Marker(leafletMap, drawControl.options.draw.marker);
-        if (drawType === 'polyline') currentDrawHandler = new L.Draw.Polyline(leafletMap, drawControl.options.draw.polyline);
+        console.log("📍 Mapa redimensionado, activando herramienta...");
         
-        if(currentDrawHandler) currentDrawHandler.enable();
-    }, 350);
+        try {
+            // Instanciar el handler manualmente
+            if (drawType === 'polygon') currentDrawHandler = new L.Draw.Polygon(leafletMap, drawOptions.polygon);
+            else if (drawType === 'marker') currentDrawHandler = new L.Draw.Marker(leafletMap, drawOptions.marker);
+            else if (drawType === 'polyline') currentDrawHandler = new L.Draw.Polyline(leafletMap, drawOptions.polyline);
+            
+            if (currentDrawHandler) {
+                currentDrawHandler.enable();
+                console.log("✅ Handler de dibujo habilitado");
+            } else {
+                console.error("❌ No se pudo crear el handler de dibujo para:", drawType);
+            }
+        } catch (err) {
+            console.error("❌ Error fatal al iniciar dibujo:", err);
+            alert("Error al iniciar herramienta de dibujo. Revisa la consola.");
+        }
+    }, 400);
     
     // Configurar y mostrar panel flotante
     drawingInstructions.innerText = instructions;
     drawingModePanel.classList.remove('hidden');
 };
 
-const cancelDrawingMode = () => {
+const stopDrawingModeUI = () => {
+    drawingModePanel.classList.add('hidden');
     if (currentDrawHandler) {
         currentDrawHandler.disable();
     }
-    drawingModePanel.classList.add('hidden');
+    // Reactivar heatmap si estaba activo
+    if (heatmapLayer && !leafletMap.hasLayer(heatmapLayer)) {
+        heatmapLayer.addTo(leafletMap);
+        console.log("🔥 Heatmap reactivado");
+    }
+};
+
+const cancelDrawingMode = () => {
+    stopDrawingModeUI();
     if (currentDrawingModal) {
         openModal(currentDrawingModal);
         
@@ -259,7 +404,61 @@ const cancelDrawingMode = () => {
     currentDrawingModal = null;
 };
 
-document.getElementById('btn-cancel-draw').addEventListener('click', cancelDrawingMode);
+const modalCommercial = document.getElementById('modal-commercial');
+const btnOpenCommercial = document.getElementById('btn-open-commercial');
+if(btnOpenCommercial) btnOpenCommercial.addEventListener('click', () => openModal(modalCommercial));
+
+// --- CRUD Comercial (Pasaporte Colonial) ---
+const formCommercial = document.getElementById('form-commercial');
+const commercialListAdmin = document.getElementById('commercial-list-admin');
+
+formCommercial.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const commercialId = push(ref(database, 'commercial_offers')).key;
+    
+    const offerData = {
+        id: commercialId,
+        title: document.getElementById('comm-name').value,
+        icon: document.getElementById('comm-icon').value,
+        shortDesc: document.getElementById('comm-short-desc').value,
+        desc: document.getElementById('comm-desc').value,
+        validationCode: document.getElementById('comm-code').value,
+        validUntil: document.getElementById('comm-date').value,
+        timestamp: Date.now()
+    };
+
+    set(ref(database, `commercial_offers/${commercialId}`), offerData).then(() => {
+        formCommercial.reset();
+        alert("Socio comercial añadido con éxito");
+    });
+});
+
+onValue(ref(database, 'commercial_offers'), (snapshot) => {
+    commercialListAdmin.innerHTML = '';
+    const data = snapshot.val();
+    if (data) {
+        Object.values(data).forEach(offer => {
+            const item = document.createElement('div');
+            item.className = 'list-item-admin';
+            item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="material-symbols-outlined">${offer.icon}</span>
+                    <span><b>${offer.title}</b> - ${offer.validationCode}</span>
+                </div>
+                <button class="btn-delete" onclick="deleteCommercial('${offer.id}')">Eliminar</button>
+            `;
+            commercialListAdmin.appendChild(item);
+        });
+    } else {
+        commercialListAdmin.innerHTML = '<p style="padding: 1rem; color: var(--text-dim);">No hay comercios registrados.</p>';
+    }
+});
+
+window.deleteCommercial = (id) => {
+    if(confirm("¿Eliminar este establecimiento del Pasaporte Colonial?")) {
+        set(ref(database, `commercial_offers/${id}`), null);
+    }
+};
 
 btnConfigUnits.addEventListener('click', () => openModal(modalUnits));
 btnConfigPolygons.addEventListener('click', () => openModal(modalPolygons));
@@ -319,29 +518,38 @@ window.deleteUnit = (id) => {
 };
 
 // --- CRUD Geocercas (Vincular último dibujo) ---
-let lastDrawnLayer = null;
 leafletMap.on(L.Draw.Event.CREATED, (e) => {
+    console.log("✨ Figura creada con éxito!");
     lastDrawnLayer = e.layer;
     drawnItems.addLayer(lastDrawnLayer);
     
+    // HABILITAR EDICIÓN INMEDIATA: Esto permite mover los puntos
+    if (lastDrawnLayer.editing) {
+        lastDrawnLayer.editing.enable();
+        console.log("🛠️ Modo edición activado en la figura");
+    }
+
     if (currentDrawingModal) {
-        // Regresar a la vista de configuración
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.querySelector('.nav-item[data-view="config"]').classList.add('active');
-        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-        document.getElementById('config-view').classList.add('active');
-        
-        // Ocultar panel y abrir modal original
-        drawingModePanel.classList.add('hidden');
+        // Ocultar panel de dibujo y abrir modal
+        stopDrawingModeUI();
         openModal(currentDrawingModal);
         
-        // Habilitar el botón de guardado en el modal correspondiente
-        if(currentDrawingModal === modalPolygons) document.getElementById('btn-save-polygon').disabled = false;
+        // Habilitar el botón de guardado
+        if(currentDrawingModal === modalPolygons) {
+            document.getElementById('btn-save-polygon').disabled = false;
+            document.getElementById('btn-save-polygon').innerText = "Guardar Geocerca (Listo)";
+        }
         if(currentDrawingModal === modalStops) document.getElementById('btn-save-stop').disabled = false;
         if(currentDrawingModal === modalRoutes) document.getElementById('btn-save-route').disabled = false;
         
         currentDrawHandler = null;
-        currentDrawingModal = null;
+    }
+});
+
+// Debug de clicks en mapa
+leafletMap.on('click', (e) => {
+    if (currentDrawHandler) {
+        console.log(`🖱️ Clic en mapa detectado en: ${e.latlng.lat}, ${e.latlng.lng}`);
     }
 });
 
@@ -395,9 +603,19 @@ onValue(ref(database, 'admin_config/polygons'), (snapshot) => {
         
         // También actualizar el mapa con las geocercas guardadas
         Object.values(data).forEach(poly => {
-            L.geoJSON(poly.geometry, {
+            const layer = L.geoJSON(poly.geometry, {
                 style: { color: '#f8c214', weight: 4, opacity: 0.8, fillColor: '#f8c214', fillOpacity: 0.2 }
             }).bindPopup(`<b>Zona: ${poly.name}</b>`).addTo(polygonsLayer);
+            
+            // Etiqueta permanente en el centro
+            const center = layer.getBounds().getCenter();
+            L.marker(center, {
+                icon: L.divIcon({
+                    className: 'poly-label',
+                    html: `<div style="color: #f8c214; font-weight: 800; font-size: 10px; white-space: nowrap; text-shadow: 1px 1px 2px black;">${poly.name.toUpperCase()}</div>`,
+                    iconSize: [100, 20]
+                })
+            }).addTo(polygonsLayer);
         });
     }
 });
@@ -539,5 +757,34 @@ window.deleteRoute = (id) => {
         set(ref(database, `admin_config/routes/${id}`), null);
     }
 };
+
+// --- Sembrado de Datos de Ejemplo (Solo si está vacío) ---
+get(ref(database, 'admin_config/stops')).then((snapshot) => {
+    if (!snapshot.exists()) {
+        const demoStops = {
+            stop_1: { id: 'stop_1', name: 'Calle El Conde', lat: 18.4735, lng: -69.8855, timestamp: Date.now() },
+            stop_2: { id: 'stop_2', name: 'Parque Colón', lat: 18.4730, lng: -69.8860, timestamp: Date.now() },
+            stop_3: { id: 'stop_3', name: 'Pata de Palo', lat: 18.4740, lng: -69.8845, timestamp: Date.now() }
+        };
+        set(ref(database, 'admin_config/stops'), demoStops);
+    }
+});
+
+get(ref(database, 'commercial_offers')).then((snapshot) => {
+    if (!snapshot.exists()) {
+        const demoOfferId = "demo_coffee";
+        set(ref(database, `commercial_offers/${demoOfferId}`), {
+            id: demoOfferId,
+            title: "Café de la Ciudad",
+            icon: "local_cafe",
+            shortDesc: "Café gratis con tu desayuno",
+            desc: "Disfruta de un café artesanal dominicano totalmente gratis al presentar tu ticket de ZONA ENCARAMAO en desayunos seleccionados.",
+            validationCode: "COLONIAL-CAFE",
+            validUntil: "31 DIC 2026",
+            timestamp: Date.now()
+        });
+        console.log("☕ Oferta demo sembrada con éxito");
+    }
+});
 
 console.log("🛡️ ZONA ENCARAMAO: Centro de Control Experto Iniciado");
