@@ -248,16 +248,17 @@ const startDrawingMode = (modal, handler, instructions) => {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.getElementById('monitoring-view').classList.add('active');
     
-    // Forzar redibujado de Leaflet al cambiar de pestaña
-    setTimeout(() => map.invalidateSize(), 150);
+    // Forzar redibujado de Leaflet al cambiar de pestaña y luego iniciar dibujo
+    setTimeout(() => {
+        map.invalidateSize();
+        // Iniciar herramienta de dibujo
+        currentDrawHandler = handler;
+        currentDrawHandler.enable();
+    }, 250);
     
     // Configurar y mostrar panel flotante
     drawingInstructions.innerText = instructions;
     drawingModePanel.classList.remove('hidden');
-    
-    // Iniciar herramienta de dibujo
-    currentDrawHandler = handler;
-    currentDrawHandler.enable();
 };
 
 const cancelDrawingMode = () => {
@@ -307,7 +308,7 @@ formUnit.addEventListener('submit', (e) => {
         timestamp: Date.now()
     }).then(() => {
         formUnit.reset();
-        // La lista se actualizará automáticamente por el listener onValue
+        closeModal(modalUnits); // Cierra el modal automáticamente
         alert("Unidad guardada correctamente");
     }).catch(err => {
         console.error("Error al guardar unidad:", err);
@@ -390,6 +391,7 @@ formPolygon.addEventListener('submit', (e) => {
     }).then(() => {
         formPolygon.reset();
         closeModal(modalPolygons);
+        document.getElementById('btn-save-polygon').disabled = true; // Reinicia el botón
         lastDrawnLayer = null;
         alert("Geocerca guardada con éxito");
     });
@@ -453,6 +455,7 @@ formStop.addEventListener('submit', (e) => {
     }).then(() => {
         formStop.reset();
         closeModal(modalStops);
+        document.getElementById('btn-save-stop').disabled = true; // Reinicia el botón
         lastDrawnLayer = null;
         alert("Parada guardada con éxito");
     });
@@ -517,6 +520,7 @@ formRoute.addEventListener('submit', (e) => {
     }).then(() => {
         formRoute.reset();
         closeModal(modalRoutes);
+        document.getElementById('btn-save-route').disabled = true; // Reinicia el botón
         lastDrawnLayer = null;
         alert("Ruta guardada con éxito");
     });
