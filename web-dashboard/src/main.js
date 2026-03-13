@@ -20,7 +20,8 @@ const database = getDatabase(app);
 
 // --- Configuración del Mapa ---
 const ZONA_COLONIAL_CENTER = [18.4730, -69.8860];
-const map = L.map('map', {
+const mapContainer = document.getElementById('map');
+const leafletMap = L.map(mapContainer, {
     center: ZONA_COLONIAL_CENTER,
     zoom: 16,
     zoomControl: false
@@ -28,13 +29,13 @@ const map = L.map('map', {
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+}).addTo(leafletMap);
 
-L.control.zoom({ position: 'topright' }).addTo(map);
+L.control.zoom({ position: 'topright' }).addTo(leafletMap);
 
 // --- Capas de Dibujo ---
 const drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
+leafletMap.addLayer(drawnItems);
 
 const drawControl = new L.Control.Draw({
     edit: { 
@@ -84,7 +85,7 @@ const shuttleIcon = L.divIcon({
     iconSize: [18, 18]
 });
 
-const shuttleMarker = L.marker(ZONA_COLONIAL_CENTER, { icon: shuttleIcon }).addTo(map);
+const shuttleMarker = L.marker(ZONA_COLONIAL_CENTER, { icon: shuttleIcon }).addTo(leafletMap);
 shuttleMarker.bindPopup("<b>Trencito ZONA ENCARAMAO</b><br>Estado: En Vivo");
 
 // --- Sincronización Real-Time ---
@@ -124,9 +125,9 @@ window.deleteRequest = (id) => {
 };
 
 // Capas permanentes para visualizar configuraciones guardadas
-const polygonsLayer = new L.FeatureGroup().addTo(map);
-const stopsLayer = new L.FeatureGroup().addTo(map);
-const routesLayer = new L.FeatureGroup().addTo(map);
+const polygonsLayer = new L.FeatureGroup().addTo(leafletMap);
+const stopsLayer = new L.FeatureGroup().addTo(leafletMap);
+const routesLayer = new L.FeatureGroup().addTo(leafletMap);
 
 // --- Lógica de Navegación de Vistas y Modales ---
 const navItems = document.querySelectorAll('.nav-item[data-view]');
@@ -226,11 +227,11 @@ const startDrawingMode = (modal, drawType, instructions) => {
     
     // Forzar redibujado de Leaflet al cambiar de pestaña y luego iniciar dibujo
     setTimeout(() => {
-        map.invalidateSize();
+        leafletMap.invalidateSize();
         // Instanciar la herramienta EN ESTE MOMENTO EXACTO con el mapa redimensionado visualmente
-        if (drawType === 'polygon') currentDrawHandler = new L.Draw.Polygon(map, drawControl.options.draw.polygon);
-        if (drawType === 'marker') currentDrawHandler = new L.Draw.Marker(map, drawControl.options.draw.marker);
-        if (drawType === 'polyline') currentDrawHandler = new L.Draw.Polyline(map, drawControl.options.draw.polyline);
+        if (drawType === 'polygon') currentDrawHandler = new L.Draw.Polygon(leafletMap, drawControl.options.draw.polygon);
+        if (drawType === 'marker') currentDrawHandler = new L.Draw.Marker(leafletMap, drawControl.options.draw.marker);
+        if (drawType === 'polyline') currentDrawHandler = new L.Draw.Polyline(leafletMap, drawControl.options.draw.polyline);
         
         if(currentDrawHandler) currentDrawHandler.enable();
     }, 350);
@@ -319,7 +320,7 @@ window.deleteUnit = (id) => {
 
 // --- CRUD Geocercas (Vincular último dibujo) ---
 let lastDrawnLayer = null;
-map.on(L.Draw.Event.CREATED, (e) => {
+leafletMap.on(L.Draw.Event.CREATED, (e) => {
     lastDrawnLayer = e.layer;
     drawnItems.addLayer(lastDrawnLayer);
     
