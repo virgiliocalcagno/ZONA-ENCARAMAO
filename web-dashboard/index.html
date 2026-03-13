@@ -120,9 +120,44 @@
           </div>
         </main>
       </div>
+      
+      <!-- Panel de Modo Dibujo Flotante (Oculto por defecto) -->
+      <div id="drawing-mode-panel" class="drawing-mode-panel hidden">
+        <div class="drawing-info">
+          <span class="material-symbols-outlined drawing-icon-pulse">draw</span>
+          <div>
+            <h3>Modo Dibujo Activo</h3>
+            <p id="drawing-instructions">Traza la figura en el mapa...</p>
+          </div>
+        </div>
+        <button id="btn-cancel-draw" class="btn-cancel-draw">Cancelar Dibujo</button>
+      </div>
     </div>
 
     <!-- Modales de Configuración -->
+    <div class="modal-overlay" id="modal-alerts">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Alertas y Notificaciones</h2>
+          <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-instruction">Configura los parámetros operativos técnicos de la flota.</p>
+          <form id="form-alerts">
+            <div class="input-group">
+              <label>Límite de Velocidad (km/h)</label>
+              <input type="number" id="alert-speed" value="40" required>
+            </div>
+            <div class="input-group">
+              <label>Tolerancia de Desvío de Ruta (metros)</label>
+              <input type="number" id="alert-deviation" value="50" required>
+            </div>
+            <button type="submit" class="btn-primary-modal">Guardar Parámetros</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="modal-units">
       <div class="modal-content">
         <div class="modal-header">
@@ -156,13 +191,14 @@
           <button class="close-modal"><span class="material-symbols-outlined">close</span></button>
         </div>
         <div class="modal-body">
-          <p class="modal-instruction">Usa las herramientas de dibujo en el mapa para trazar el perímetro y luego asígnale un nombre aquí.</p>
+          <p class="modal-instruction">Puedes trazar el perímetro en el mapa o vincular el último que dibujaste.</p>
+          <button id="btn-draw-polygon" class="btn-draw-action"><span class="material-symbols-outlined">polyline</span> Dibujar Nueva Geocerca</button>
           <form id="form-polygon">
             <div class="input-group">
               <label>Nombre de la Zona</label>
               <input type="text" id="poly-name" placeholder="Ej: Zona Colonial Principal" required>
             </div>
-            <button type="submit" class="btn-primary-modal">Vincular al último dibujo</button>
+            <button type="submit" class="btn-primary-modal" id="btn-save-polygon" disabled>Guardar Geocerca (Requiere Dibujo)</button>
           </form>
           <div class="polygons-list-container">
             <h3>Zonas Guardadas</h3>

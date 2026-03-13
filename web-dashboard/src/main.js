@@ -197,15 +197,85 @@ const closeButtons = document.querySelectorAll('.close-modal');
 
 const openModal = (modal) => {
     modal.classList.add('active');
-    if (modal === modalPolygons || modal === modalStops || modal === modalRoutes) {
-        map.addControl(drawControl);
-    }
 };
 
 const closeModal = (modal) => {
     modal.classList.remove('active');
-    map.removeControl(drawControl);
 };
+
+// --- Panel de Alertas ---
+const modalAlerts = document.getElementById('modal-alerts');
+const btnConfigAlerts = document.getElementById('config-alerts').querySelector('.btn-config');
+btnConfigAlerts.addEventListener('click', () => openModal(modalAlerts));
+
+const formAlerts = document.getElementById('form-alerts');
+const alertSpeed = document.getElementById('alert-speed');
+const alertDeviation = document.getElementById('alert-deviation');
+
+formAlerts.addEventListener('submit', (e) => {
+    e.preventDefault();
+    set(ref(database, 'admin_config/alerts'), {
+        speed_limit: parseInt(alertSpeed.value),
+        deviation_meters: parseInt(alertDeviation.value),
+        timestamp: Date.now()
+    }).then(() => {
+        closeModal(modalAlerts);
+        alert("Alertas globales actualizadas");
+    });
+});
+
+onValue(ref(database, 'admin_config/alerts'), (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        if(data.speed_limit) alertSpeed.value = data.speed_limit;
+        if(data.deviation_meters) alertDeviation.value = data.deviation_meters;
+    }
+});
+
+// --- Flujo Experto de Dibujo ---
+const drawingModePanel = document.getElementById('drawing-mode-panel');
+const drawingInstructions = document.getElementById('drawing-instructions');
+let currentDrawingModal = null;
+let currentDrawHandler = null;
+
+const startDrawingMode = (modal, handler, instructions) => {
+    closeModal(modal);
+    currentDrawingModal = modal;
+    
+    // Cambiar vista a monitoreo para ver el mapa
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector('.nav-item[data-view="monitoring-view"]').classList.add('active');
+    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+    document.getElementById('monitoring-view').classList.add('active');
+    
+    // Configurar y mostrar panel flotante
+    drawingInstructions.innerText = instructions;
+    drawingModePanel.classList.remove('hidden');
+    
+    // Iniciar herramienta de dibujo
+    currentDrawHandler = handler;
+    currentDrawHandler.enable();
+};
+
+const cancelDrawingMode = () => {
+    if (currentDrawHandler) {
+        currentDrawHandler.disable();
+    }
+    drawingModePanel.classList.add('hidden');
+    if (currentDrawingModal) {
+        openModal(currentDrawingModal);
+        
+        // Regresar a vista de configuración si estábamos ahí
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector('.nav-item[data-view="config-view"]').classList.add('active');
+        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+        document.getElementById('config-view').classList.add('active');
+    }
+    currentDrawHandler = null;
+    currentDrawingModal = null;
+};
+
+document.getElementById('btn-cancel-draw').addEventListener('click', cancelDrawingMode);
 
 btnConfigUnits.addEventListener('click', () => openModal(modalUnits));
 btnConfigPolygons.addEventListener('click', () => openModal(modalPolygons));
@@ -268,17 +338,35 @@ window.deleteUnit = (id) => {
 let lastDrawnLayer = null;
 map.on(L.Draw.Event.CREATED, (e) => {
     lastDrawnLayer = e.layer;
-    const type = e.layerType;
     drawnItems.addLayer(lastDrawnLayer);
     
-    // Si estamos en configuración de polígonos, abrimos el modal
-    if (document.getElementById('config-view').classList.contains('active')) {
-        openModal(modalPolygons);
+    if (currentDrawingModal) {
+        // Regresar a la vista de configuración
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector('.nav-item[data-view="config-view"]').classList.add('active');
+        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+        document.getElementById('config-view').classList.add('active');
+        
+        // Ocultar panel y abrir modal original
+        drawingModePanel.classList.add('hidden');
+        openModal(currentDrawingModal);
+        
+        // Habilitar el botón de guardado en el modal correspondiente
+        if(currentDrawingModal === modalPolygons) document.getElementById('btn-save-polygon').disabled = false;
+        if(currentDrawingModal === modalStops) document.getElementById('btn-save-stop').disabled = false;
+        if(currentDrawingModal === modalRoutes) document.getElementById('btn-save-route').disabled = false;
+        
+        currentDrawHandler = null;
+        currentDrawingModal = null;
     }
 });
 
 const formPolygon = document.getElementById('form-polygon');
 const polygonsListAdmin = document.getElementById('polygons-list-admin');
+
+document.getElementById('btn-draw-polygon').addEventListener('click', () => {
+    startDrawingMode(modalPolygons, new L.Draw.Polygon(map, drawControl.options.draw.polygon), "Dibuja el perímetro haciendo clic en el mapa. Conecta el último punto para terminar.");
+});
 
 formPolygon.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -337,6 +425,10 @@ window.deletePolygon = (id) => {
 // --- CRUD Paradas ---
 const formStop = document.getElementById('form-stop');
 const stopsListAdmin = document.getElementById('stops-list-admin');
+
+document.getElementById('btn-draw-stop').addEventListener('click', () => {
+    startDrawingMode(modalStops, new L.Draw.Marker(map, drawControl.options.draw.marker), "Haz clic en el mapa para marcar el punto de recogida oficial.");
+});
 
 formStop.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -398,6 +490,10 @@ window.deleteStop = (id) => {
 // --- CRUD Rutas ---
 const formRoute = document.getElementById('form-route');
 const routesListAdmin = document.getElementById('routes-list-admin');
+
+document.getElementById('btn-draw-route').addEventListener('click', () => {
+    startDrawingMode(modalRoutes, new L.Draw.Polyline(map, drawControl.options.draw.polyline), "Traza la ruta calle por calle. Haz doble clic en el último punto para terminar.");
+});
 
 formRoute.addEventListener('submit', (e) => {
     e.preventDefault();

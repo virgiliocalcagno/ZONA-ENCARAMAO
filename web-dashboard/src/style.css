@@ -323,3 +323,81 @@ div.leaflet-div-icon.leaflet-editing-icon {
 }
 
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* Modo Dibujo Panel */
+.drawing-mode-panel {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+}
+
+.drawing-mode-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -20px);
+}
+
+.drawing-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drawing-icon-pulse {
+  color: var(--primary);
+  font-size: 2rem;
+  animation: pulse 1.5s infinite;
+}
+
+.drawing-info h3 { font-size: 1rem; margin-bottom: 2px; }
+.drawing-info p { font-size: 0.8rem; color: var(--text-dim); margin: 0; }
+
+.btn-cancel-draw {
+  background: transparent;
+  color: #ff4444;
+  border: 1px solid #ff4444;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-draw:hover {
+  background: #ff4444;
+  color: white;
+}
+
+.btn-draw-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(248, 194, 20, 0.1);
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-draw-action:hover {
+  background: var(--primary);
+  color: black;
+}
