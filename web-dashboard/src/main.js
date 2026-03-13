@@ -244,9 +244,12 @@ const startDrawingMode = (modal, handler, instructions) => {
     
     // Cambiar vista a monitoreo para ver el mapa
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelector('.nav-item[data-view="monitoring-view"]').classList.add('active');
+    document.querySelector('.nav-item[data-view="monitoring"]').classList.add('active');
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.getElementById('monitoring-view').classList.add('active');
+    
+    // Forzar redibujado de Leaflet al cambiar de pestaña
+    setTimeout(() => map.invalidateSize(), 150);
     
     // Configurar y mostrar panel flotante
     drawingInstructions.innerText = instructions;
@@ -267,7 +270,7 @@ const cancelDrawingMode = () => {
         
         // Regresar a vista de configuración si estábamos ahí
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.querySelector('.nav-item[data-view="config-view"]').classList.add('active');
+        document.querySelector('.nav-item[data-view="config"]').classList.add('active');
         document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
         document.getElementById('config-view').classList.add('active');
     }
@@ -343,7 +346,7 @@ map.on(L.Draw.Event.CREATED, (e) => {
     if (currentDrawingModal) {
         // Regresar a la vista de configuración
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.querySelector('.nav-item[data-view="config-view"]').classList.add('active');
+        document.querySelector('.nav-item[data-view="config"]').classList.add('active');
         document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
         document.getElementById('config-view').classList.add('active');
         
